@@ -1,0 +1,46 @@
+name: product-catalog-rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Environment to rollback (dev, qa, prod)"
+        required: true
+        type: choice
+        options:
+          - dev
+          - qa
+          - prod
+      rollback_tag:
+        description: "Docker image tag to rollback to"
+        required: true
+
+jobs:
+  rollback:
+    name: Rollback to ${{ inputs.rollback_tag }} in ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
+
+      - name: Update deployment manifest with rollback tag
+        run: |
+          sed -i "s|image: .*|image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ inputs.rollback_tag }}|" kubernetes/productcatalog/deploy.yaml
+
+      - name: Apply rollback to Kubernetes
+        run: |
+          kubectl apply -f kubernetes/productcatalog/deploy.yaml
+          kubectl rollout status deployment/${{ inputs.environment }}-product-catalog
