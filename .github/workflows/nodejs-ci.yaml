@@ -1,4 +1,4 @@
-name: Product Catalog CI/CD
+name: Product Catalog CI
 
 on:
   workflow_dispatch:
