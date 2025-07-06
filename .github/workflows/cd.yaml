@@ -11,8 +11,8 @@ on:
           - dev
           - qa
           - prod
-      image_tag:
-        description: "Docker image tag to deploy (e.g., GitHub run ID)"
+      image_name:
+        description: "Image name"
         required: true
 
 jobs:
@@ -36,11 +36,7 @@ jobs:
         run: |
           aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
 
-      - name: Update image tag in manifest
-        run: |
-          sed -i "s|image: .*|image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPOSITORY }}:${{ inputs.image_tag }}|" kubernetes/productcatalog/deploy.yaml
-
       - name: Deploy to Kubernetes
         run: |
-          kubectl apply -f kubernetes/productcatalog/deploy.yaml
+          kubectl rollout restart deployment/${{ inputs.image_name }}
           kubectl rollout status deployment/${{ inputs.image_name }}
