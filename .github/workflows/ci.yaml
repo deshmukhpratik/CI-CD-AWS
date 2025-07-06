@@ -11,6 +11,9 @@ on:
           - dev
           - qa
           - prod
+      image_tag:
+        description: "Docker image tag to deploy (e.g., GitHub run ID)"
+        required: true
 
 jobs:
   build:
