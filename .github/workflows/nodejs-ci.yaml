@@ -89,5 +89,6 @@ jobs:
           file: src/product-catalog/Dockerfile
           push: true
           tags: |
+            ${{ steps.login-ecr.outputs.registry }}/product-catalog:${{ inputs.image_tag }}
             ${{ steps.login-ecr.outputs.registry }}/product-catalog:${{ inputs.environment }}
             ${{ steps.login-ecr.outputs.registry }}/product-catalog:latest
