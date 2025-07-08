@@ -43,4 +43,4 @@ jobs:
       - name: Apply rollback to Kubernetes
         run: |
           kubectl apply -f kubernetes/productcatalog/deploy.yaml
-          kubectl rollout status deployment/${{ inputs.environment }}-product-catalog
+          kubectl rollout status deployment/product-catalog
